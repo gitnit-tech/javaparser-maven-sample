@@ -47,7 +47,7 @@ pipeline {
                     echo "------------- Jar Publish Started -------------"
 
                     def server = Artifactory.newServer(
-                        url: 'registry /artifactory',
+                        url: 'http://13.205.1.93:8081/artifactory',
                         credentialsId: 'Artifact-Credential'
                     )
 
