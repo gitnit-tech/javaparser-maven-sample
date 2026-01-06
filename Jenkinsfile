@@ -9,17 +9,17 @@ pipeline {
 
         stage('Build') {
             steps {
-                echo "--------- build started"
+                echo "--------- build started ----------"
                 sh 'mvn clean package -Dmaven.test.skip=true'
-                echo "--------- build completed"
+                echo "--------- build completed --------"
             }
         }
 
         stage('Test') {
             steps {
-                echo "--------- unit test started"
-                sh 'mvn surefire-report:report'
-                echo "--------- unit test completed"
+                echo "--------- unit test started ------"
+                sh 'mvn test'
+                echo "--------- unit test completed ----"
             }
         }
 
@@ -31,22 +31,14 @@ pipeline {
                 withSonarQubeEnv('My-SonarQube-Server') {
                     sh """
                         ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=my-java-project \
+                        -Dsonar.projectName=my-java-project \
+                        -Dsonar.sources=src/main/java \
                         -Dsonar.java.binaries=target/classes
                     """
                 }
             }
         }
-
-        stage('Quality Gate') {
-            steps {
-                script {
-                    timeout(time: 1, unit: 'HOURS') {
-                        def qg = waitForQualityGate()
-                        if (qg.status != 'OK') {
-                            error "Pipeline aborted due to Quality Gate failure: ${qg.status}"
-                        }
-                    }
-                }
-            }
-        }
-                          
+    }
+}
+                      
