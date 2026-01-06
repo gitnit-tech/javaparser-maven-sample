@@ -30,12 +30,29 @@ pipeline {
             steps {
                 withSonarQubeEnv('My-SonarQube-Server') {
                     sh """
-                        ${scannerHome}/bin/sonar-scanner \
-                      
+                        ${scannerHome}/bin/sonar-scanner
                     """
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                script {
+                    timeout(time: 1, unit: 'HOURS') {
+
+                        def qg = waitForQualityGate()
+
+                        if (qg.status != 'OK') {
+                            error "Pipeline aborted due to SonarQube Quality Gate failure: ${qg.status}"
+                        }
+
+                        echo "SonarQube Quality Gate PASSED"
+                    }
                 }
             }
         }
     }
 }
-                      
+
+     
