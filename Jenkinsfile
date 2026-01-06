@@ -1,78 +1,44 @@
-pipeline {
-    agent any
+stage('Jar Publish') {
+    steps {
+        script {
 
-    environment {
-        PATH = "/opt/maven/bin:$PATH"
-    }
+            echo "------------- Jar Publish Started -------------"
 
-    stages {
+            // ✅ STEP 1: Prepare jarstaging directory
+            sh '''
+                mkdir -p jarstaging
+                cp target/*.jar jarstaging/
+                echo "JARs available for upload:"
+                ls -l jarstaging
+            '''
 
-        stage('Build') {
-            steps {
-                echo "--------- build started ----------"
-                sh 'mvn clean package -Dmaven.test.skip=true'
-                echo "--------- build completed --------"
-            }
-        }
+            def server = Artifactory.newServer(
+                url: 'http://13.205.1.93:8081/artifactory',
+                credentialsId: 'Artifact-Credential'
+            )
 
-        stage('Test') {
-            steps {
-                echo "--------- unit test started ------"
-                sh 'mvn test'
-                echo "--------- unit test completed ----"
-            }
-        }
+            def properties = "buildid=${env.BUILD_ID};commitid=${env.GIT_COMMIT}"
 
-        stage('SonarQube Analysis') {
-            environment {
-                scannerHome = tool 'My-SonarQube-Scanner'
-            }
-            steps {
-                withSonarQubeEnv('My-SonarQube-Server') {
-                    sh """
-                        ${scannerHome}/bin/sonar-scanner
-                    """
-                }
-            }
-        }
+            def uploadSpec = """{
+                "files": [
+                    {
+                        "pattern": "jarstaging/(*)",
+                        "target": "nitish/{1}",
+                        "flat": "false",
+                        "props": "${properties}",
+                        "exclusions": ["*.sha1", "*.md5"]
+                    }
+                ]
+            }"""
 
-        // quality gate test Skipped
-              
-        
+            def buildInfo = server.upload(uploadSpec)
+            buildInfo.env.collect()
+            server.publishBuildInfo(buildInfo)
 
-        stage('Jar Publish') {
-            steps {
-                script {
-
-                    echo "------------- Jar Publish Started -------------"
-
-                    def server = Artifactory.newServer(
-                        url: 'http://13.205.1.93:8081/artifactory',
-                        credentialsId: 'Artifact-Credential'
-                    )
-
-                    def properties = "buildid=${env.BUILD_ID};commitid=${env.GIT_COMMIT}"
-
-                    def uploadSpec = """{
-                        "files": [
-                            {
-                                "pattern": "jarstaging/(*)",
-                                "target": "nitish/{1}",
-                                "flat": "false",
-                                "props": "${properties}",
-                                "exclusions": ["*.sha1", "*.md5"]
-                            }
-                        ]
-                    }"""
-
-                    def buildInfo = server.upload(uploadSpec)
-                    buildInfo.env.collect()
-                    server.publishBuildInfo(buildInfo)
-
-                    echo "------------- Jar Publish Ended ---------------"
-                }
-            }
+            echo "------------- Jar Publish Ended ---------------"
         }
     }
 }
+
+
 
