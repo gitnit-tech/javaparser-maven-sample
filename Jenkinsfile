@@ -59,7 +59,7 @@ pipeline {
                         "files": [
                             {
                                 "pattern": "jarstaging/(*)",
-                            "target": "nitishh//{1}",
+                            "target": "MyJfrog-repo//{1}",
                             "flat": "false",
                             "props": "${properties}",
                             "exclusions": ["*.sha1", "*.md5"]
