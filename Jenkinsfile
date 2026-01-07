@@ -49,7 +49,7 @@ pipeline {
                     '''
 
                     def server = Artifactory.newServer(
-                        url: 'http://13.205.1.93:8081/artifactory',
+                        url: 'http://65.2.139.219:8081/artifactory',
                         credentialsId: 'Artifact-Credential'
                     )
 
@@ -59,7 +59,7 @@ pipeline {
                         "files": [
                             {
                                 "pattern": "jarstaging/(*)",
-                            "target": "nitish/{1}",
+                            "target": "nitishh//{1}",
                             "flat": "false",
                             "props": "${properties}",
                             "exclusions": ["*.sha1", "*.md5"]
